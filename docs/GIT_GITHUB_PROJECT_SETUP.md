@@ -159,9 +159,13 @@ file:.git/config    C:/data/tools/gitRepos/git_project_template/hooks
 
 # 2. 初回コミット
 
-main 直コミット防止 hook があるため、作業ブランチを作る。
+main 直コミット防止 hook があるため、最初に main へ空コミットを作成し、その後に作業ブランチを作る。
+
+初回の空コミットだけは例外として `--no-verify` を使う。
 
 ```powershell
+git commit --allow-empty --no-verify -m "chore: main初期空コミット"
+
 $ts = Get-Date -Format "yyyy-MMdd-HHmm"
 $wip = "wip/$ts"
 git switch -c $wip
@@ -236,6 +240,8 @@ git merge --no-ff $wip
 git push -u origin main
 ```
 
+`git push -u origin main` が pre-push hook で拒否された場合は、`git log --oneline --graph --decorate -5` で `main` の先頭が merge commit になっているか確認する。
+
 確認：
 
 ```powershell
@@ -250,6 +256,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 ```
+
 
 ---
 
@@ -318,6 +325,7 @@ git branch -d $wip
 □ git config --show-origin --get core.hooksPath で確認済み
 □ GitHub に空リポジトリ作成済み
 □ origin 設定済み
+□ main 初期空コミット作成済み
 □ 作業ブランチで初回コミット済み
 □ main へ --no-ff merge 済み
 □ git push -u origin main 済み
