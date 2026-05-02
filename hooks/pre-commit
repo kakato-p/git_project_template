@@ -1,0 +1,109 @@
+#!/bin/sh
+# pre-commit
+# Policy:
+#   - Allow commits ONLY on wip/* branches
+#   - If an Excel/VBA project is detected, require the standard VBA export flow files
+#   - Run local test gate only when scripts/run_tests.bat exists
+# Notes:
+#   - Intended for Windows + Git for Windows (Git Bash sh)
+#   - If you use PowerShell only, Git still runs hooks via sh when hooks are sh scripts.
+
+set -u
+
+# ----------------------------------------------------------
+# Branch guard: allow only wip/*
+# ----------------------------------------------------------
+branch="$(git branch --show-current 2>/dev/null || true)"
+
+if [ -z "$branch" ]; then
+  echo "[ERROR] Cannot determine current branch."
+  echo "        Are you in a detached HEAD state?"
+  echo "        Abort commit."
+  exit 1
+fi
+
+case "$branch" in
+  wip/*)
+    # OK
+    ;;
+  *)
+    echo "====================================="
+    echo "[ERROR] Commit is blocked on this branch."
+    echo "Only wip/* branches are allowed to commit."
+    echo ""
+    echo "Current: $branch"
+    echo ""
+    echo "Fix:"
+    echo "  git switch -c wip/YYYYMMDD-HHmm   (or your naming rule)"
+    echo "====================================="
+    exit 1
+    ;;
+esac
+
+# ----------------------------------------------------------
+# VBA export flow guard
+# ----------------------------------------------------------
+has_xlsm="$(find . -maxdepth 3 -type f -iname "*.xlsm" | head -n 1)"
+has_vba_code_dir="$(find . -maxdepth 3 -type d -iname "vbaCode" | head -n 1)"
+
+if [ -n "$has_xlsm" ] || [ -n "$has_vba_code_dir" ]; then
+  if [ ! -f "vbaCode/allExport.bas" ]; then
+    echo "====================================="
+    echo "[ERROR] VBA project detected, but vbaCode/allExport.bas is missing."
+    echo ""
+    echo "Required path:"
+    echo "  vbaCode/allExport.bas"
+    echo ""
+    echo "Copy the standard allExport.bas to vbaCode/allExport.bas before committing."
+    echo "====================================="
+    exit 1
+  fi
+
+  if [ -f "VBA_EXPORT_GIT_FLOW.md" ]; then
+    echo "====================================="
+    echo "[ERROR] VBA_EXPORT_GIT_FLOW.md must not be placed at project root."
+    echo ""
+    echo "Invalid path:"
+    echo "  VBA_EXPORT_GIT_FLOW.md"
+    echo ""
+    echo "Required path:"
+    echo "  docs/VBA_EXPORT_GIT_FLOW.md"
+    echo ""
+    echo "Move VBA_EXPORT_GIT_FLOW.md into docs/ before committing."
+    echo "====================================="
+    exit 1
+  fi
+
+  if [ ! -f "docs/VBA_EXPORT_GIT_FLOW.md" ]; then
+    echo "====================================="
+    echo "[ERROR] VBA project detected, but docs/VBA_EXPORT_GIT_FLOW.md is missing."
+    echo ""
+    echo "Required path:"
+    echo "  docs/VBA_EXPORT_GIT_FLOW.md"
+    echo ""
+    echo "Copy the standard VBA export/Git flow document to docs/VBA_EXPORT_GIT_FLOW.md before committing."
+    echo "====================================="
+    exit 1
+  fi
+fi
+
+# ----------------------------------------------------------
+# Local test gate
+# ----------------------------------------------------------
+if [ -f "scripts/run_tests.bat" ]; then
+  echo "Running local test gate..."
+
+  scripts/run_tests.bat
+  rc=$?
+
+  if [ $rc -ne 0 ]; then
+    echo "Commit aborted: tests or coverage failed. (exit=$rc)"
+    exit 1
+  fi
+
+  echo "Test gate passed."
+else
+  echo "No scripts/run_tests.bat found. Skip local test gate."
+fi
+
+exit 0
