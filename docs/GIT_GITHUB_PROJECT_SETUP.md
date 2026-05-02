@@ -8,6 +8,18 @@
 
 ---
 
+## 概要
+
+1. 新規プロジェクト作成から Git 初期設定まで自動実行
+2. 初回コミット
+3. GitHub 側で空リポジトリを作成し、remote を設定
+4. main へマージして GitHub に push
+5. 以後の標準作業フロー
+6. チェックリスト
+7. 重要ポイント
+
+---
+
 ## 前提
 
 ### 標準ディレクトリ
@@ -107,12 +119,8 @@ if (-not (Test-Path "README.md")) {
 "@ | Set-Content -Path "README.md" -Encoding UTF8
 }
 
-git remote remove origin 2>$null
-git remote add origin "https://github.com/$githubUser/$projectName.git"
-
 git status
 git config --show-origin --get core.hooksPath
-git remote -v
 ```
 
 ---
@@ -147,19 +155,6 @@ git config --show-origin --get core.hooksPath
 file:.git/config    C:/data/tools/gitRepos/git_project_template/hooks
 ```
 
-remote 確認：
-
-```powershell
-git remote -v
-```
-
-期待例：
-
-```text
-origin  https://github.com/kakato-p/<projectName>.git (fetch)
-origin  https://github.com/kakato-p/<projectName>.git (push)
-```
-
 ---
 
 # 2. 初回コミット
@@ -181,18 +176,46 @@ git commit -m "chore: 初期ファイルを追加"
 
 ---
 
-# 3. GitHub 側で空リポジトリを作成
+# 3. GitHub 側で空リポジトリを作成し、remote を設定
 
-GitHub で、以下の名前の空リポジトリを作成する。
+GitHub で空リポジトリを作成する。
 
 ```text
-$projectName に指定した名前
+https://github.com/
 ```
 
-例：
+手順：
+
+1. GitHub にアクセスする
+2. 右上の ＋ をクリック
+3. New repository をクリック
+4. Repository name に `$projectName` に指定した名前を入力する
+5. Description は任意。空欄でOK
+6. Visibility は Private を選択
+7. 画面下の初期化オプションは全部オフ
+8. Create repository をクリック
+
+Repository name 例：
 
 ```text
 tradingLog
+```
+
+## remote を設定する
+
+GitHub 側で空リポジトリを作成したあと、ローカル側で remote を設定する。
+
+```powershell
+git remote remove origin 2>$null
+git remote add origin "https://github.com/kakato-p/$projectName.git"
+git remote -v
+```
+
+期待例：
+
+```text
+origin  https://github.com/kakato-p/<projectName>.git (fetch)
+origin  https://github.com/kakato-p/<projectName>.git (push)
 ```
 
 
