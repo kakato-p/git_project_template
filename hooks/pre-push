@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
+
+# main 以外は許可
+if [ "$branch" != "main" ]; then
+  exit 0
+fi
+
+# merge commit 判定：2つ目の親が存在するか？
+# merge commit なら "HEAD^2" が解決できる
+if git rev-parse -q --verify HEAD^2 >/dev/null 2>&1; then
+  exit 0
+fi
+
+echo "====================================="
+echo "[ERROR] Push to MAIN is blocked."
+echo "Only merge commits are allowed."
+echo "====================================="
+exit 1
