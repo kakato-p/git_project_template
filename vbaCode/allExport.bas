@@ -1,5 +1,4 @@
-﻿Attribute VB_Name = "allExport"
-Option Explicit
+﻿Option Explicit
 'ver.2026-05-07 cursorがVBA書き換えるようになったので、Cursorに改行コードを揃えた
 
 Private Const EXPORT_TEXT_CHARSET As String = "utf-8"
