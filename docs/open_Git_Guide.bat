@@ -1,1 +1,0 @@
-start "" "C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE" /x "C:\data\tools\gitRepos\git_project_template\docs\git_guide.xlsm"
