@@ -67,7 +67,8 @@ $projectName = "new_project_name"
 # 通常は変更不要
 $githubUser = "kakato-p"
 $repoRoot = "C:\data\tools\gitRepos"
-$hooksPath = "C:\data\tools\gitRepos\git_project_template\hooks"
+$templateRoot = "C:\data\tools\gitRepos\git_project_template"
+$hooksPath = Join-Path $templateRoot "hooks"
 
 $projectPath = Join-Path $repoRoot $projectName
 
@@ -83,29 +84,14 @@ git branch -M main
 
 git config core.hooksPath $hooksPath
 
-# .gitignore を新規生成
+# 共通 .gitignore を配置
 if (-not (Test-Path ".gitignore")) {
-@"
-# Python
-__pycache__/
-*.pyc
-.venv/
-.env
+    Copy-Item (Join-Path $templateRoot ".gitignore") .gitignore
+}
 
-# Excel temporary files
-~$*.xlsm
-~$*.xlsx
-
-# Logs / runtime
-logs/
-runtime/
-*.log
-
-# OS / editor
-.DS_Store
-Thumbs.db
-.vscode/
-"@ | Set-Content -Path ".gitignore" -Encoding UTF8
+# 共通 .gitattributes を配置
+if (-not (Test-Path ".gitattributes")) {
+    Copy-Item (Join-Path $templateRoot ".gitattributes") .gitattributes
 }
 
 # README.md が存在しない場合、新規生成
@@ -139,6 +125,7 @@ On branch main
 No commits yet
 
 Untracked files:
+  .gitattributes
   .gitignore
   README.md
 ```
@@ -320,6 +307,7 @@ git branch -d $wip
 □ git init 済み
 □ main ブランチ化済み
 □ .gitignore 作成済み
+□ .gitattributes 作成済み
 □ README.md 作成済み
 □ core.hooksPath 設定済み
 □ git config --show-origin --get core.hooksPath で確認済み
