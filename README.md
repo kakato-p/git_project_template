@@ -19,14 +19,17 @@ git_project_template
 │   ├── GIT_GITHUB_PROJECT_SETUP.md
 │   ├── README.md
 │   ├── VBA_EXPORT_GIT_FLOW.md
-│   ├── manual
-│   │   ├── RSS_install_manual.xlsx
-│   │   └── git_guide.xlsm
-│   └── open_Git_Guide.bat
+│   └── manual
+│       ├── RSS_install_manual.xlsx
+│       ├── git_guide.xlsm
+│       └── open_Git_Guide.bat
 ├── hooks
 │   ├── post-checkout
 │   ├── pre-commit
 │   └── pre-push
+├── templates
+│   ├── .gitattributes
+│   └── .gitignore
 └── vbaCode
     └── allExport.bas
 ```
@@ -116,7 +119,7 @@ docs/manual/git_guide.xlsm
 docs/manual/RSS_install_manual.xlsx
 ```
 
-`docs/open_Git_Guide.bat` は `docs/manual/git_guide.xlsm` を開く補助バッチとして扱う
+`docs/manual/open_Git_Guide.bat` は `docs/manual/git_guide.xlsm` を開く補助バッチとして扱う
 
 ### hooks
 
