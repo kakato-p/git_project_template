@@ -13,7 +13,7 @@
 1. 新規プロジェクト作成から Git 初期設定まで自動実行
 2. 初回コミット
 3. GitHub 側で空リポジトリを作成し、remote を設定
-4. main へマージして GitHub に push
+4. 明示許可後に main へマージして GitHub に push
 5. 以後の標準作業フロー
 6. チェックリスト
 7. 重要ポイント
@@ -48,6 +48,27 @@ git_project_template
 
 このリポジトリは、各プロジェクトへ直接コピーして使うものではなく、Git/GitHub 導入手順・共通 hook・運用マニュアルを管理する専用リポジトリとして扱う。
 
+### 共通rules
+
+Agent作業時は、対象プロジェクトの固有手順に加えて以下を参照する。
+
+```text
+C:\data\tools\gitRepos\rules\git.md
+C:\data\tools\gitRepos\rules\edit_policy.md
+C:\data\tools\gitRepos\rules\python.md
+C:\data\tools\gitRepos\rules\vba.md
+C:\data\tools\gitRepos\rules\writing_style.md
+```
+
+### Git運用の前提
+
+- 作業前に `git branch --show-current; git status` を確認する
+- `main` ブランチで直接編集しない
+- `main` の場合は `wip/yyyy-MMdd-HHmm` ブランチを作成してから編集する
+- commit / push はユーザーの明示許可がある場合のみ実行する
+- hook失敗時は原因を直すか、修正不能な理由を報告する
+- hook失敗時に `--no-verify` で勝手に回避しない
+
 ---
 
 # 1. 新規プロジェクト作成から Git 初期設定まで自動実行
@@ -81,6 +102,10 @@ Set-Location $projectPath
 
 git init
 git branch -M main
+
+$ts = Get-Date -Format "yyyy-MMdd-HHmm"
+$wip = "wip/$ts"
+git switch -c $wip
 
 git config core.hooksPath $hooksPath
 
@@ -120,7 +145,7 @@ git status
 期待例：
 
 ```text
-On branch main
+On branch wip/yyyy-MMdd-HHmm
 
 No commits yet
 
@@ -146,24 +171,32 @@ file:.git/config    C:/data/tools/gitRepos/git_project_template/hooks
 
 # 2. 初回コミット
 
-main 直コミット防止 hook があるため、最初に main へ空コミットを作成し、その後に作業ブランチを作る。
+main 直コミット防止 hook があるため、初回ファイル追加も `wip/` ブランチで行う。
 
-初回の空コミットだけは例外として `--no-verify` を使う。
+作業前にブランチと状態を確認する。
 
 ```powershell
-git commit --allow-empty --no-verify -m "chore: main初期空コミット"
+git branch --show-current
+git status
+```
 
+現在ブランチが `main` の場合は、編集・commit 前に `wip/` ブランチを作成する。
+
+```powershell
 $ts = Get-Date -Format "yyyy-MMdd-HHmm"
 $wip = "wip/$ts"
 git switch -c $wip
+git branch
 ```
 
-ファイルを追加してコミットする。
+ユーザーの明示許可がある場合のみ、初期ファイルを追加して commit する。
 
 ```powershell
 git add .
 git commit -m "chore: 初期ファイルを追加"
 ```
+
+hook が失敗した場合、`--no-verify` で回避せず、原因を直すか修正不能な理由を報告する。
 
 ---
 
@@ -219,9 +252,16 @@ origin  https://github.com/kakato-p/<projectName>.git (push)
 
 ---
 
-# 4. main へマージして GitHub に push
+# 4. 明示許可後に main へマージして GitHub に push
+
+main への反映と push は、ユーザーの明示許可がある場合のみ実行する。
+
+実行前に、現在ブランチが `wip/` であることを確認する。
 
 ```powershell
+$wip = git branch --show-current
+if ($wip -eq "main") { throw "ERROR: You are on main. Switch to your wip branch first." }
+
 git switch main
 git merge --no-ff $wip
 git push -u origin main
@@ -252,6 +292,9 @@ nothing to commit, working tree clean
 ## 作業開始
 
 ```powershell
+git branch --show-current
+git status
+
 git switch main
 git pull --ff-only
 
@@ -259,10 +302,12 @@ $ts = Get-Date -Format "yyyy-MMdd-HHmm"
 $wip = "wip/$ts"
 git switch -c $wip
 
-git status --porcelain
+git status
 ```
 
 ## 作業後
+
+commit はユーザーの明示許可がある場合のみ実行する。
 
 ```powershell
 git diff --name-only
@@ -274,6 +319,8 @@ git status
 ```
 
 ## main へ反映
+
+main への merge / push はユーザーの明示許可がある場合のみ実行する。
 
 ```powershell
 $wip = git branch --show-current
@@ -311,12 +358,13 @@ git branch -d $wip
 □ README.md 作成済み
 □ core.hooksPath 設定済み
 □ git config --show-origin --get core.hooksPath で確認済み
+□ main 直編集禁止を確認済み
+□ wipブランチ作成済み
 □ GitHub に空リポジトリ作成済み
 □ origin 設定済み
-□ main 初期空コミット作成済み
-□ 作業ブランチで初回コミット済み
-□ main へ --no-ff merge 済み
-□ git push -u origin main 済み
+□ ユーザー明示許可後に初回コミット済み
+□ ユーザー明示許可後に main へ --no-ff merge 済み
+□ ユーザー明示許可後に git push -u origin main 済み
 □ git status が clean
 ```
 
@@ -353,9 +401,12 @@ C:\data\tools\gitRepos\git_project_template\hooks\post-checkout
 
 ```text
 git_project_template
+├── .gitattributes
+├── .gitignore
 ├── README.md
 ├── docs
-│   └── GIT_GITHUB_PROJECT_SETUP.md
+│   ├── GIT_GITHUB_PROJECT_SETUP.md
+│   └── VBA_EXPORT_GIT_FLOW.md
 └── hooks
     ├── pre-commit
     ├── pre-push
