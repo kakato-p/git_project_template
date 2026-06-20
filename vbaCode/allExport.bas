@@ -1,9 +1,12 @@
 ﻿Attribute VB_Name = "allExport"
 Option Explicit
-'ver.2026-05-07 cursorがVBA書き換えるようになったので、Cursorに改行コードを揃えた
+Private Const MODULE_NAME = "allExport"
+
+'ver.2026-06-15 MODULE_NAME明記
 
 Private Const EXPORT_TEXT_CHARSET As String = "utf-8"
 Private Const EXPORT_LINE_ENDING As String = vbLf
+'
 
 ' VBAモジュールをエクスポートして Git 向けに UTF-8(BOM)・LF に正規化する
 ' .frm は Export のみ（変換しない） ※.frxが絡むため
@@ -132,3 +135,4 @@ ContinueLine:
     Next iRow
 
 End Function
+
